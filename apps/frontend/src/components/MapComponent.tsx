@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
@@ -32,6 +32,19 @@ interface MarkerData {
   description: string;
 }
 
+// Define interfaces for our simulation
+interface Agent {
+  id: number;
+  position: [number, number];
+  path: [number, number][];
+  currentPathIndex: number;
+}
+
+interface SimulationState {
+  agents: Agent[];
+  isRunning: boolean;
+}
+
 // Main map component that handles markers and interactions
 const MapComponent: React.FC = () => {
   // State for storing markers and right-click position information
@@ -51,6 +64,126 @@ const MapComponent: React.FC = () => {
     position: null,
     description: ''
   });
+  const [simulation, setSimulation] = useState<SimulationState>({
+    agents: [],
+    isRunning: false
+  });
+  
+  // Animation frame reference
+  const animationFrameRef = useRef<number>();
+  
+  // Helper function to generate random path
+  const generateRandomPath = (startPos: [number, number], numPoints: number): [number, number][] => {
+    const path: [number, number][] = [startPos];
+    let currentPos = startPos;
+    
+    for (let i = 0; i < numPoints; i++) {
+      const newPos: [number, number] = [
+        currentPos[0] + (Math.random() - 0.5) * 0.01,
+        currentPos[1] + (Math.random() - 0.5) * 0.01
+      ];
+      path.push(newPos);
+      currentPos = newPos;
+    }
+    
+    return path;
+  };
+
+  // Initialize simulation
+  const initializeSimulation = (numAgents: number = 50) => {
+    console.log("Initializing simulation...");
+    const newAgents: Agent[] = Array.from({ length: numAgents }, (_, i) => ({
+      id: i,
+      position: [51.505 + (Math.random() - 0.5) * 0.1, -0.09 + (Math.random() - 0.5) * 0.1],
+      path: generateRandomPath([51.505, -0.09], 10),
+      currentPathIndex: 0
+    }));
+
+    console.log("Created agents:", newAgents);
+    setSimulation({
+      agents: newAgents,
+      isRunning: true
+    });
+  };
+
+  // Update agent positions
+  const updateAgents = () => {
+    setSimulation(prev => ({
+      ...prev,
+      agents: prev.agents.map(agent => {
+        const nextPoint = agent.path[agent.currentPathIndex + 1];
+        if (!nextPoint) {
+          // Reset to beginning of path if we've reached the end
+          return { ...agent, currentPathIndex: 0 };
+        }
+
+        const speed = 0.1; // Adjust this to control movement speed
+        const currentPos = agent.position;
+        const dx = (nextPoint[0] - currentPos[0]) * speed;
+        const dy = (nextPoint[1] - currentPos[1]) * speed;
+
+        return {
+          ...agent,
+          position: [currentPos[0] + dx, currentPos[1] + dy],
+          currentPathIndex: Math.abs(dx) < 0.0001 && Math.abs(dy) < 0.0001 
+            ? agent.currentPathIndex + 1 
+            : agent.currentPathIndex
+        };
+      })
+    }));
+  };
+
+  // Animation loop
+  useEffect(() => {
+    console.log("Simulation state changed:", simulation);
+  }, [simulation]);
+
+  useEffect(() => {
+    if (simulation.isRunning) {
+      console.log("Animation started");
+      const animate = () => {
+        updateAgents();
+        animationFrameRef.current = requestAnimationFrame(animate);
+      };
+      
+      animationFrameRef.current = requestAnimationFrame(animate);
+      
+      return () => {
+        console.log("Animation cleanup");
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+      };
+    }
+  }, [simulation.isRunning]);
+
+  // Add simulation controls
+  const simulationControls = (
+    <div style={{
+      position: 'absolute',
+      top: '20px',
+      right: '20px',
+      zIndex: 1000,
+      background: 'white',
+      padding: '10px',
+      borderRadius: '8px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+    }}>
+      <button
+        onClick={() => simulation.isRunning ? setSimulation(prev => ({ ...prev, isRunning: false })) : initializeSimulation()}
+        style={{
+          padding: '8px 16px',
+          background: simulation.isRunning ? '#e74c3c' : '#2ecc71',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        {simulation.isRunning ? 'Stop Simulation' : 'Start Simulation'}
+      </button>
+    </div>
+  );
 
   // Component to handle map events (click and right-click)
   const MapEventHandler = () => {
@@ -98,201 +231,55 @@ const MapComponent: React.FC = () => {
     }
   };
 
+  // Make agents more visible
+  const agentIcon = new L.DivIcon({
+    className: 'agent-marker',
+    html: `<div style="
+      width: 16px;
+      height: 16px;
+      background: red;
+      border-radius: 50%;
+      opacity: 1;
+      border: 2px solid white;
+    "></div>`,
+    iconSize: [16, 16],
+  });
+
   return (
-    <div>
-      {/* Main map container centered on London coordinates */}
+    <div style={{ position: 'relative' }}>
       <MapContainer center={[51.505, -0.09]} zoom={13} style={{ height: "100vh", width: "100%" }}>
-        {/* OpenStreetMap tile layer for map rendering */}
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {/* Render all markers from state */}
-        {markers.map((marker, index) => (
-          <Marker 
-            key={index} 
-            position={[marker.location.coordinates[1], marker.location.coordinates[0]]} 
-            icon={icon} 
-          />
-        ))}
-        {/* Component that handles map interactions */}
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        
+        {simulation.agents.map(agent => {
+          console.log("Rendering agent:", agent);
+          return (
+            <Marker
+              key={agent.id}
+              position={agent.position}
+              icon={agentIcon}
+            />
+          );
+        })}
+        
         <MapEventHandler />
       </MapContainer>
       
-      {/* Conditional rendering of the right-click coordinate popup */}
-      {rightClickPos && (
-        <div style={{ 
-          position: 'fixed',
-          left: Math.min(rightClickPos.clientX + 10, window.innerWidth - 250),
-          top: Math.min(rightClickPos.clientY + 10, window.innerHeight - 150),
-          background: 'white', 
-          padding: '15px',
-          borderRadius: '8px',
-          boxShadow: '0 3px 14px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          width: '220px',
-          border: '1px solid #e0e0e0',
-          fontFamily: 'Arial, sans-serif'
-        }}>
-          <button 
-            onClick={() => setRightClickPos(null)}
-            style={{ 
-              position: 'absolute',
-              right: '8px',
-              top: '8px',
-              border: 'none',
-              background: '#f5f5f5',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              color: '#666',
-              fontSize: '14px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            ✕
-          </button>
-
-          <div style={{ marginBottom: '12px', paddingRight: '20px' }}>
-            <h3 style={{ 
-              margin: '0 0 10px 0',
-              color: '#333',
-              fontSize: '16px',
-              fontWeight: 600 
-            }}>
-              Location Details
-            </h3>
-          </div>
-
-          <div style={{
-            background: '#f8f9fa',
-            padding: '10px',
-            borderRadius: '6px',
-            marginBottom: '12px'
-          }}>
-            <div style={{ marginBottom: '8px' }}>
-              <label style={{ 
-                color: '#666', 
-                fontSize: '12px', 
-                display: 'block',
-                marginBottom: '2px'
-              }}>
-                Latitude
-              </label>
-              <span style={{ 
-                color: '#333',
-                fontSize: '14px',
-                fontFamily: 'monospace'
-              }}>
-                {rightClickPos.lat.toFixed(6)}
-              </span>
-            </div>
-            
-            <div>
-              <label style={{ 
-                color: '#666', 
-                fontSize: '12px', 
-                display: 'block',
-                marginBottom: '2px'
-              }}>
-                Longitude
-              </label>
-              <span style={{ 
-                color: '#333',
-                fontSize: '14px',
-                fontFamily: 'monospace'
-              }}>
-                {rightClickPos.lng.toFixed(6)}
-              </span>
-            </div>
-          </div>
-
-          <button 
-            onClick={() => navigator.clipboard.writeText(`${rightClickPos.lat},${rightClickPos.lng}`)}
-            style={{ 
-              width: '100%',
-              padding: '8px 12px',
-              background: '#4a90e2',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'background 0.2s ease'
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>📋</span> Copy Coordinates
-          </button>
-        </div>
-      )}
-
-      {/* Add Description Dialog */}
-      {descriptionDialog.isOpen && (
-        <div style={{
-          position: 'fixed',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 3px 14px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          width: '300px',
-          border: '1px solid #e0e0e0'
-        }}>
-          <h3 style={{ margin: '0 0 15px 0' }}>Add Marker Description</h3>
-          <textarea
-            value={descriptionDialog.description}
-            onChange={(e) => setDescriptionDialog({
-              ...descriptionDialog,
-              description: e.target.value
-            })}
-            style={{
-              width: '100%',
-              padding: '8px',
-              marginBottom: '15px',
-              borderRadius: '4px',
-              border: '1px solid #ddd',
-              minHeight: '100px'
-            }}
-            placeholder="Enter description for this marker..."
-          />
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-            <button
-              onClick={() => setDescriptionDialog({ isOpen: false, position: null, description: '' })}
-              style={{
-                padding: '8px 15px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                background: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreateMarker}
-              style={{
-                padding: '8px 15px',
-                background: '#4a90e2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Add Marker
-            </button>
-          </div>
-        </div>
-      )}
+      {simulationControls}
     </div>
   );
 };
+
+// Add styles for agent markers
+const styles = `
+  .agent-marker {
+    background: none;
+    border: none;
+  }
+`;
+
+// Add styles to document
+const styleSheet = document.createElement("style");
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
 
 export default MapComponent;
