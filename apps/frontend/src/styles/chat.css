@@ -1,0 +1,122 @@
+.main-content {
+    position: relative;
+    height: calc(100vh - 60px);
+  }
+  
+  .chat-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .chat-panel.collapsed {
+    transform: translateX(calc(100% - 40px));
+  }
+  
+  .chat-toggle {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) translateX(-100%);
+    padding: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    border-right: none;
+    cursor: pointer;
+    border-radius: 4px 0 0 4px;
+  }
+  
+  .chat-content {
+    width: 300px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  .chat-input {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+  }
+  
+  .chat-input input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .chat-input button {
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .chat-history {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  
+  .file-upload {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .upload-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .upload-button:hover {
+    background: #218838;
+  }
+  
+  .message {
+    margin: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    max-width: 80%;
+  }
+  
+  .message.user {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+  }
+  
+  .message.assistant {
+    background-color: #f1f1f1;
+    margin-right: auto;
+  }
+  
+  .message.loading {
+    background-color: #f8f9fa;
+    text-align: center;
+    font-style: italic;
+  }
+  
+  .message.error {
+    background-color: #dc3545;
+    color: white;
+    text-align: center;
+  }
+  
+  .chat-input input:disabled,
+  .chat-input button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }

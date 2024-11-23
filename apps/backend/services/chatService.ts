@@ -1,12 +1,14 @@
 import OpenAI from "openai";
-import { PineconeClient } from "@pinecone-database/pinecone";
+import { Pinecone } from '@pinecone-database/pinecone';
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const pinecone = new PineconeClient();
+const pinecone = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY,
+});
 
 export class ChatService {
   private static instance: ChatService;
