@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+    <script src="public/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h2>Document Upload</h2>
+            <div class="upload-area">
+                <input type="file" id="pdf-upload" accept=".pdf">
+                <label for="pdf-upload" id="upload-button">
+                    <i class="fas fa-cloud-upload-alt"></i> Choose PDF
+                </label>
+                <div class="loader" id="upload-loader"></div>
+                <p id="upload-status"></p>
+            </div>
+        </div>
+        <div class="chat-area">
+            <div class="chat-header">
+                AI Assistant
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="input-area">
+                <input type="text" id="chat-input" placeholder="Type your message...">
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
