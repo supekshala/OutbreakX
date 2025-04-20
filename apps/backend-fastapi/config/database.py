@@ -1,3 +1,5 @@
+from collections.abc import Generator
+from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -23,3 +25,10 @@ try:
         print("Successfully connected to the database!")
 except Exception as e:
     print(f"Error connecting to the database: {e}")
+
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
