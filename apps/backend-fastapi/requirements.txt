@@ -1,0 +1,5 @@
+uvicorn
+fastapi
+geoalchemy2
+shapely
+python-dotenv
