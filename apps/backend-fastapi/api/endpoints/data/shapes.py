@@ -7,29 +7,35 @@ from shapely.geometry import Point
 from models import models
 from config.database import get_db
 from schemas.schemas import PointCreate
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi import HTTPException
 
 
 router = APIRouter()
 
 @router.post("/shapes")
 def create_shape(shape: PointCreate, db: Session = Depends(get_db)):
-    lon, lat = shape.location.coordinates
-    geom = Point(lon, lat)
-    db_shape = models.Point(
-        location_point=from_shape(geom, srid=4326),
-        description=shape.description
-    )
-    db.add(db_shape)
-    db.commit()
-    db.refresh(db_shape)
-    return {
-        "id": db_shape.id,
-        "location": {
-            "type": "Point",
-            "coordinates": [lon, lat]
-        },
-        "description": db_shape.description
-    }
+    try:
+        lon, lat = shape.location.coordinates
+        geom = Point(lon, lat)
+        db_shape = models.Point(
+            location_point=from_shape(geom, srid=4326),
+            description=shape.description
+        )
+        db.add(db_shape)
+        db.commit()
+        db.refresh(db_shape)
+        return {
+            "id": db_shape.id,
+            "location": {
+                "type": "Point",
+                "coordinates": [lon, lat]
+            },
+            "description": db_shape.description
+        }
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
 @router.get("/shapes/all")
 def get_shapes(db: Session = Depends(get_db)):
