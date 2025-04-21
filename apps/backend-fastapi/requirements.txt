@@ -1,0 +1,6 @@
+uvicorn[standard]
+fastapi
+geoalchemy2
+shapely
+python-dotenv
+psycopg2 
