@@ -91,7 +91,7 @@ const MapComponent: React.FC = () => {
       };
       console.log(newMarker);
       
-      axios.post('http://localhost:8000/shapes', newMarker)
+      axios.post('http://localhost:8000/point', newMarker)
         .then(response => setMarkers([...markers, response.data]))
         .catch(error => console.error('Error creating marker:', error));
       
