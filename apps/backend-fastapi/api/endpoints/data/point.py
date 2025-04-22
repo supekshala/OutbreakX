@@ -13,7 +13,7 @@ from fastapi import HTTPException
 
 router = APIRouter()
 
-@router.post("/shapes")
+@router.post("/point")
 def create_shape(shape: PointCreate, db: Session = Depends(get_db)):
     try:
         lon, lat = shape.location.coordinates
@@ -37,7 +37,7 @@ def create_shape(shape: PointCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
-@router.get("/shapes/all")
+@router.get("/point/all")
 def get_shapes(db: Session = Depends(get_db)):
     shapes = db.query(models.Point).all()
     results = []
