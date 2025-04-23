@@ -9,3 +9,11 @@ class Location(BaseModel):
 class PointCreate(BaseModel):
     location: Location
     description: str
+
+class PolygonCoordinates(BaseModel):
+    # A polygon is an array of coordinates (list of lists)
+    coordinates: List[List[List[float]]]
+
+class PolygonCreate(BaseModel):
+    description: str
+    geometry: PolygonCoordinates
