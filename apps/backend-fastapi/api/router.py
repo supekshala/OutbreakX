@@ -8,9 +8,12 @@ from api.endpoints.data import circle
 
 router = APIRouter()
 
-# Include the shapes router with a prefix
+# data endpoints
 router.include_router(point.router, tags=["POINT"])
-router.include_router(file_upload.router, tags=["FILE UPLOAD ENPOINTS"])
 router.include_router(polygon.router, tags=["POLYGON"])
 router.include_router(p2p_routes.router, tags=["POINT TO POINT ROUTES"]) 
 router.include_router(circle.router, tags=["CIRCLE"])
+
+
+# file upload endpoints
+router.include_router(file_upload.router, tags=["FILE UPLOAD ENPOINTS"])
