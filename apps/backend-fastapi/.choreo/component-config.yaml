@@ -1,0 +1,10 @@
+apiVersion: core.choreo.dev/v1beta1
+kind: ComponentConfig
+spec:
+  inbound:
+    - name: fastapi-backend
+      port: 5000
+      type: REST
+      networkVisibility: Public
+      context: /
+      
