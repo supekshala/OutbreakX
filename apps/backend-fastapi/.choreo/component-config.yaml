@@ -1,10 +1,12 @@
-apiVersion: core.choreo.dev/v1beta1
-kind: ComponentConfig
+# This file is used to configure the component for the FastAPI service.
+name: fastapi-service
+componentType: service
 spec:
+  build:
+    buildCommand: pip install -r requirements.txt
+    runCommand: uvicorn main:app --host=0.0.0.0 --port=8000
   inbound:
-    - name: fastapi-backend
-      port: 5000
+    - name: http
       type: REST
-      networkVisibility: Public
-      
-      
+      context: /
+      port: 8000
