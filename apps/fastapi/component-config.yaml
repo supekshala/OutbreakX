@@ -6,7 +6,7 @@ build:
 inbound:
   - name: http
     type: REST
-    context: /
+    context: /api/v1
     port: 8000
     method: GET,POST   # Specify methods or make it "*"
     routes:  # You might need to explicitly list routes
