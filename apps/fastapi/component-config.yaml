@@ -8,3 +8,8 @@ inbound:
     type: REST
     context: /
     port: 8000
+    method: GET,POST   # Specify methods or make it "*"
+    routes:  # You might need to explicitly list routes
+      - "/ping"
+      - "/point/all"
+      - "/point"
