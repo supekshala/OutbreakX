@@ -26,8 +26,4 @@ yarn-error.log*
 .turbo
 .env
 
-#logging
-logs/
 
-#ruff
-.ruff_cache/
