@@ -9,6 +9,7 @@ from config.database import get_db
 from schemas.schemas import PointCreate
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
+from fastapi.logger import logger
 
 
 router = APIRouter()
@@ -17,6 +18,12 @@ router = APIRouter()
 @router.post("/point")
 def create_shape(shape: PointCreate, db: Session = Depends(get_db)):
     try:
+        if not shape.location.coordinates or len(shape.location.coordinates) != 2:
+            logger.error("Location coordinates are missing")
+            raise HTTPException(
+                status_code=400,
+                detail="Coordinates must contain exactly two values (longitude and latitude).",
+            )
         lon, lat = shape.location.coordinates
         geom = Point(lon, lat)
         db_shape = models.Point(
@@ -25,6 +32,7 @@ def create_shape(shape: PointCreate, db: Session = Depends(get_db)):
         db.add(db_shape)
         db.commit()
         db.refresh(db_shape)
+        logger.info(f"Shape created with ID: {db_shape.id}")
         return {
             "id": db_shape.id,
             "location": {"type": "Point", "coordinates": [lon, lat]},
@@ -32,12 +40,16 @@ def create_shape(shape: PointCreate, db: Session = Depends(get_db)):
         }
     except SQLAlchemyError as e:
         db.rollback()
+        logger.error(f"Database error: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
 
 @router.get("/point/all")
 def get_shapes(db: Session = Depends(get_db)):
     shapes = db.query(models.Point).all()
+    if not shapes:
+        raise HTTPException(status_code=404, detail="No shapes found")
+        logger.error("No shapes found in the database")
     results = []
     for shape in shapes:
         geom = wkt.loads(db.scalar(shape.location_point.ST_AsText()))

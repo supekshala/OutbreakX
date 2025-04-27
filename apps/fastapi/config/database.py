@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
+from logger import logger
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,7 +13,7 @@ SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
-print("Database engine created")
+logger.debug("Connecting to database")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -20,9 +21,9 @@ Base = declarative_base()
 
 try:
     with engine.connect() as connection:
-        print("Successfully connected to the database!")
+        logger.info("Successfully connected to the database!")
 except Exception as e:
-    print(f"Error connecting to the database: {e}")
+    logger.error(f"Error connecting to the database: {e}")
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -31,3 +32,4 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+        logger.debug("Database session closed")
