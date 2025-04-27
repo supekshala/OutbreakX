@@ -13,7 +13,7 @@ SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
-logger.debug("Connecting to database")
+logger.info("Connecting to database")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -32,4 +32,4 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
-        logger.debug("Database session closed")
+        logger.info("Database session closed")

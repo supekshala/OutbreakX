@@ -31,4 +31,4 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
 # Test the logger
-logger.debug("Logger is set up and ready to log messages.")
+logger.info("Logger is set up and ready to log messages.")
