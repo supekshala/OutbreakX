@@ -11,7 +11,7 @@ router = APIRouter()
 # data endpoints
 router.include_router(point.router, tags=["POINT"])
 router.include_router(polygon.router, tags=["POLYGON"])
-router.include_router(p2p_routes.router, tags=["POINT TO POINT ROUTES"]) 
+router.include_router(p2p_routes.router, tags=["POINT TO POINT ROUTES"])
 router.include_router(circle.router, tags=["CIRCLE"])
 
 

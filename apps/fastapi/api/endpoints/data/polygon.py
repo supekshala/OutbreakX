@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-
 @router.post("/polygon")
 def create_polygon(shape: PolygonCreate, db: Session = Depends(get_db)):
     try:
@@ -32,8 +31,10 @@ def create_polygon(shape: PolygonCreate, db: Session = Depends(get_db)):
 
         # Create a new Polygon entry in the database (note that this is your database model, not Shapely's)
         db_polygon = models.Polygon(
-            geometry=from_shape(geom, srid=4326),  # Convert to PostGIS-compatible geometry
-            description=shape.description
+            geometry=from_shape(
+                geom, srid=4326
+            ),  # Convert to PostGIS-compatible geometry
+            description=shape.description,
         )
 
         # Add and commit to the database
@@ -50,4 +51,6 @@ def create_polygon(shape: PolygonCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
     except Exception as e:
         logger.error(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Error processing the request: {e}")
+        raise HTTPException(
+            status_code=400, detail=f"Error processing the request: {e}"
+        )

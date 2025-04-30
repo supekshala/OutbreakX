@@ -4,7 +4,7 @@ from config.cors import add_cors_middleware
 from config.database import Base, engine
 
 
-#creade the database tables according to the models.py
+# creade the database tables according to the models.py
 Base.metadata.create_all(bind=engine)
 
 

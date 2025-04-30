@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
 from sqlalchemy.ext.declarative import declarative_base
+
 # Load environment variables from .env file
 from urllib.parse import urlparse
 import os
@@ -20,6 +21,7 @@ if not SQLALCHEMY_DATABASE_URL:
 
 def get_ogr_pg_dsn() -> str:
     from dotenv import load_dotenv
+
     load_dotenv()
 
     host = os.getenv("DB_HOST")
@@ -28,7 +30,9 @@ def get_ogr_pg_dsn() -> str:
     password = os.getenv("DB_PASSWORD")
 
     if not all([host, user, dbname, password]):
-        raise ValueError(f"Missing DB config: host={host}, user={user}, dbname={dbname}, password={bool(password)}")
+        raise ValueError(
+            f"Missing DB config: host={host}, user={user}, dbname={dbname}, password={bool(password)}"
+        )
 
     return f"host={host} user={user} dbname={dbname} password={password}"
 
@@ -51,6 +55,7 @@ except Exception as e:
 def get_ogr_pg_dsn() -> str:
     # OGR2OGR expects a different DSN format than SQLAlchemy
     return f"host={os.getenv('DB_HOST')} user={os.getenv('DB_USER')} dbname={os.getenv('DB_NAME')} password={os.getenv('DB_PASSWORD')}"
+
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()

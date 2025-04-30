@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
+
 @router.get("/mock-endpoint")
 async def mock_endpoint():
     """
