@@ -25,3 +25,6 @@ yarn-error.log*
 
 .turbo
 .env
+.pyc
+.__pycache__
+
