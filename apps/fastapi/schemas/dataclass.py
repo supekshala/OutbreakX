@@ -2,8 +2,9 @@ import dataclasses
 from dataclasses import dataclass
 from typing import List, Optional
 
+
 @dataclass
-class Coordinate():
+class Coordinate:
     longitude: float
     latitude: float
 

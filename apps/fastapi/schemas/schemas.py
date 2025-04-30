@@ -12,5 +12,3 @@ class Location(BaseModel):
 class PointCreate(BaseModel):
     location: Location
     description: str
-
-
