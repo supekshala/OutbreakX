@@ -5,7 +5,7 @@ from typing import Literal, List
 
 class Location(BaseModel):
     type: Literal["Point"]
-    coordinates: List[float]  # [longitude, latitude]
+    coordinates: Coordinate
 
 
 class PointCreate(BaseModel):
