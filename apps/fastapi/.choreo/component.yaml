@@ -14,19 +14,11 @@ endpoints:
   - name: fastapi-endpoint
     displayName: FastAPI Service
     service:
-      basePath: /api/v1  # Base path for all API endpoints
+      basePath: /  # Root path since we're using a wildcard
       port: 8000
     type: REST
     networkVisibilities:
       - Public
-    # Define the routes that should be exposed
-    # These should match the routes in your FastAPI application
+    # Use a wildcard route to forward all requests to FastAPI
     routes:
-      - "/ping"
-      - "/point"
-      - "/point/all"
-      - "/polygon"
-      - "/api/projects/{project_id}/features"
-      - "/file_upload"
-      - "/file_upload/table_list/{table_name}"
-      - "/file_upload/all_tables"
+      - "/*"
