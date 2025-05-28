@@ -3,7 +3,7 @@ name: fastapi-service
 componentType: service
 build:
   buildCommand: pip install -r requirements.txt
-  runCommand: uvicorn main:app --host=0.0.0.0 --port=8000
+  runCommand: uvicorn fastapi.main:app --host=0.0.0.0 --port=8000
 
 inbound:
   - name: http
