@@ -9,10 +9,16 @@ build:
   buildCommand: pip install -r requirements.txt
   runCommand: uvicorn main:app --host=0.0.0.0 --port=8000
 
-inbound:
-  - name: http
+# Ingress configuration
+endpoints:
+  - name: fastapi-endpoint
+    displayName: FastAPI Service
+    service:
+      basePath: /  # Root path since we're using a wildcard
+      port: 8000
     type: REST
-    context: /api/v1
-    port: 8000
-    networkVisibility: Public
-    method: "*"
+    networkVisibilities:
+      - Public
+    # Use a wildcard route to forward all requests to FastAPI
+    routes:
+      - "/*"
