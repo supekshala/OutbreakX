@@ -17,7 +17,7 @@ router.include_router(p2p_routes.router, tags=["POINT TO POINT ROUTES"])
 router.include_router(circle.router, tags=["CIRCLE"])
 
 # project features endpoints
-router.include_router(features.router, prefix="/api/projects", tags=["PROJECT FEATURES"])
+router.include_router(features.router, prefix="/projects", tags=["PROJECT FEATURES"])
 
 # file upload endpoints
 router.include_router(file_upload.router, tags=["FILE UPLOAD ENPOINTS"])
