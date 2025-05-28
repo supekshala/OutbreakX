@@ -5,4 +5,4 @@ shapely
 python-dotenv
 psycopg2-binary
 sqlalchemy
-geojson-pydantic>=4.3.0
+geojson-pydantic>=1.0.0,<3.0.0
