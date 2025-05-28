@@ -17,4 +17,4 @@ def ping():
     return {"message": "pong"}
 
 
-app.include_router(router)
+app.include_router(router, prefix="/api/v1")

@@ -14,5 +14,10 @@ inbound:
     method: "*"
     routes:
       - "/ping"
-      - "/point/all"
       - "/point"
+      - "/point/all"
+      - "/polygon"
+      - "/api/projects/{project_id}/features"
+      - "/file_upload"
+      - "/file_upload/table_list/{table_name}"
+      - "/file_upload/all_tables"
