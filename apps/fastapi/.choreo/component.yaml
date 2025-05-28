@@ -1,19 +1,18 @@
 schemaVersion: 1.2
-name: fastapi-backend
+name: fastapi-service
 componentType: service
-source:
-  type: git
-  repository: https://github.com/your-org/your-fastapi-repo.git
-  branch: main
-  context: /
-  buildCommands:
-    - pip install -r requirements.txt
-    - uvicorn app.main:app --host 0.0.0.0 --port 8000
-endpoints:
-  - name: fastapi-endpoint
-    port: 8000
+build:
+  buildCommand: pip install -r requirements.txt
+  runCommand: uvicorn main:app --host=0.0.0.0 --port=8000
+
+inbound:
+  - name: http
     type: REST
+    context: /api/v1
+    port: 8000
     networkVisibility: Public
-    context: /
-    path: /
-    
+    method: "*"
+    routes:
+      - "/ping"
+      - "/point/all"
+      - "/point"
