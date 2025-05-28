@@ -1,17 +1,26 @@
 schemaVersion: 1.2
+
+# Component metadata
 name: fastapi-service
 componentType: service
+
+# Build configuration
 build:
   buildCommand: pip install -r requirements.txt
   runCommand: uvicorn main:app --host=0.0.0.0 --port=8000
 
-inbound:
-  - name: http
+# Ingress configuration
+endpoints:
+  - name: fastapi-endpoint
+    displayName: FastAPI Service
+    service:
+      basePath: /api/v1  # Base path for all API endpoints
+      port: 8000
     type: REST
-    context: /api/v1
-    port: 8000
-    networkVisibility: Public
-    method: "*"
+    networkVisibilities:
+      - Public
+    # Define the routes that should be exposed
+    # These should match the routes in your FastAPI application
     routes:
       - "/ping"
       - "/point"
