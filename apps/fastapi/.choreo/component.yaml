@@ -12,6 +12,7 @@ build:
 # Ingress configuration
 endpoints:
   - name: fastapi-endpoint
+    security: none
     displayName: FastAPI Service
     service:
       basePath: /api/v1  # Root path since we're using a wildcard
