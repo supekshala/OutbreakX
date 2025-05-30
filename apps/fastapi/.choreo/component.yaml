@@ -15,7 +15,7 @@ endpoints:
     security: none
     displayName: FastAPI Service
     service:
-      basePath: /api/v1  # Root path since we're using a wildcard
+      basePath: /api/v1
       port: 8000
     type: REST
     networkVisibilities:
