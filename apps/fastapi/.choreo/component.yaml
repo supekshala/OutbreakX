@@ -20,6 +20,4 @@ endpoints:
     type: REST
     networkVisibilities:
       - Public
-    # Use a wildcard route to forward all requests to FastAPI
-    routes:
-      - "/*"
+    schemaFilePath: openapi.yaml

@@ -1,0 +1,392 @@
+openapi: 3.0.0
+info:
+  title: OutbreakX API
+  description: API for managing geospatial data and features
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@outbreakx.com
+
+servers:
+  - url: /api/v1
+    description: API version 1
+
+paths:
+  /point:
+    post:
+      tags: [POINT]
+      summary: Create a new point
+      description: Creates a new point with the given coordinates and description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PointCreate'
+      responses:
+        '200':
+          description: Successfully created point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  location:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: "Point"
+                      coordinates:
+                        type: array
+                        items:
+                          type: number
+                        example: [100.0, 0.5]
+                  description:
+                    type: string
+        '400':
+          description: Invalid input data
+        '500':
+          description: Server error
+
+    get:
+      tags: [POINT]
+      summary: Get all points
+      description: Retrieves a list of all points
+      responses:
+        '200':
+          description: A list of points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    location:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "Point"
+                        coordinates:
+                          type: array
+                          items:
+                            type: number
+                          example: [100.0, 0.5]
+                    description:
+                      type: string
+        '404':
+          description: No points found
+
+  /polygon:
+    post:
+      tags: [POLYGON]
+      summary: Create a new polygon
+      description: Creates a new polygon with the given coordinates and description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolygonCreate'
+      responses:
+        '200':
+          description: Successfully created polygon
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  description:
+                    type: string
+        '400':
+          description: Invalid input data
+        '500':
+          description: Server error
+
+  /projects/{project_id}/features:
+    get:
+      tags: [PROJECT FEATURES]
+      summary: Get all features for a project
+      description: Retrieves all features for a specific project in GeoJSON format
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          description: The ID of the project
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A GeoJSON FeatureCollection of project features
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoJSONFeatureCollection'
+        '500':
+          description: Server error
+
+    put:
+      tags: [PROJECT FEATURES]
+      summary: Update project features
+      description: Updates features for a specific project (adds, updates, or deletes)
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          description: The ID of the project
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeoJSONFeatureCollection'
+      responses:
+        '200':
+          description: Successfully updated project features
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+        '400':
+          description: Invalid input data
+        '500':
+          description: Server error
+
+  /file_upload:
+    post:
+      tags: [FILE UPLOAD ENDPOINTS]
+      summary: Upload a GIS file
+      description: Uploads and processes a GIS file (e.g., Shapefile, GeoJSON)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded and processing started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+        '500':
+          description: Server error
+
+  /file_upload/all_tables:
+    get:
+      tags: [FILE UPLOAD ENDPOINTS]
+      summary: List all GIS layers
+      description: Retrieves a list of all available GIS layers
+      responses:
+        '200':
+          description: A list of table names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Server error
+
+  /file_upload/table_list/{table_name}:
+    get:
+      tags: [FILE UPLOAD ENDPOINTS]
+      summary: Get layer data
+      description: Retrieves data for a specific layer in CSV format
+      parameters:
+        - name: table_name
+          in: path
+          required: true
+          description: Name of the table to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: CSV data for the specified layer
+          content:
+            text/csv:
+              schema:
+                type: string
+        '400':
+          description: Invalid table name
+        '500':
+          description: Server error
+
+  /mock-endpoint:
+    get:
+      tags: [POINT TO POINT ROUTES, CIRCLE]
+      summary: Mock endpoint
+      description: A mock endpoint for demonstration purposes
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "This is a mock endpoint!"
+
+components:
+  schemas:
+    PointCreate:
+      type: object
+      required:
+        - location
+        - description
+      properties:
+        location:
+          $ref: '#/components/schemas/PointGeometry'
+        description:
+          type: string
+
+    PointGeometry:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum: [Point]
+          example: "Point"
+        coordinates:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+          example: [100.0, 0.5]
+
+    PolygonCreate:
+      type: object
+      required:
+        - geometry
+        - description
+      properties:
+        geometry:
+          $ref: '#/components/schemas/PolygonGeometry'
+        description:
+          type: string
+
+    PolygonGeometry:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum: [Polygon]
+          example: "Polygon"
+        coordinates:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                format: float
+          example: [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]]
+
+    GeoJSONFeatureCollection:
+      type: object
+      required:
+        - type
+        - features
+      properties:
+        type:
+          type: string
+          example: "FeatureCollection"
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJSONFeature'
+
+    GeoJSONFeature:
+      type: object
+      required:
+        - type
+        - geometry
+        - properties
+      properties:
+        type:
+          type: string
+          example: "Feature"
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+        properties:
+          type: object
+          additionalProperties: true
+
+    Geometry:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum: [Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon]
+        coordinates:
+          type: array
+
+    FeatureResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        saved:
+          type: integer
+          example: 5
+        deleted:
+          type: integer
+          example: 2
+        unchanged:
+          type: integer
+          example: 3
+        total:
+          type: integer
+          example: 10
+        message:
+          type: string
+          example: "Updated project 1 with 5 features. Deleted 2 old features. 3 features unchanged."
+
+    FileUploadResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "GIS file uploaded and processing started."
+        table_name:
+          type: string
+          example: "layer_12345"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
