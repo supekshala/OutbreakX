@@ -1,392 +1,1460 @@
-openapi: 3.0.0
-info:
-  title: OutbreakX API
-  description: API for managing geospatial data and features
-  version: 1.0.0
-  contact:
-    name: API Support
-    email: support@outbreakx.com
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OutbreakX API",
+    "description": "API for OutbreakX application",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/ping": {
+      "get": {
+        "summary": "Ping",
+        "operationId": "ping_ping_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-servers:
-  - url: /api/v1
-    description: API version 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/point": {
+      "post": {
+        "tags": [
+          "POINT"
+        ],
+        "summary": "Create Shape",
+        "operationId": "create_shape_api_v1_point_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PointCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-paths:
-  /point:
-    post:
-      tags: [POINT]
-      summary: Create a new point
-      description: Creates a new point with the given coordinates and description
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PointCreate'
-      responses:
-        '200':
-          description: Successfully created point
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  location:
-                    type: object
-                    properties:
-                      type:
-                        type: string
-                        example: "Point"
-                      coordinates:
-                        type: array
-                        items:
-                          type: number
-                        example: [100.0, 0.5]
-                  description:
-                    type: string
-        '400':
-          description: Invalid input data
-        '500':
-          description: Server error
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/point/all": {
+      "get": {
+        "tags": [
+          "POINT"
+        ],
+        "summary": "Get Shapes",
+        "operationId": "get_shapes_api_v1_point_all_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-    get:
-      tags: [POINT]
-      summary: Get all points
-      description: Retrieves a list of all points
-      responses:
-        '200':
-          description: A list of points
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    location:
-                      type: object
-                      properties:
-                        type:
-                          type: string
-                          example: "Point"
-                        coordinates:
-                          type: array
-                          items:
-                            type: number
-                          example: [100.0, 0.5]
-                    description:
-                      type: string
-        '404':
-          description: No points found
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/polygon": {
+      "post": {
+        "tags": [
+          "POLYGON"
+        ],
+        "summary": "Create Polygon",
+        "operationId": "create_polygon_api_v1_polygon_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PolygonCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-  /polygon:
-    post:
-      tags: [POLYGON]
-      summary: Create a new polygon
-      description: Creates a new polygon with the given coordinates and description
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PolygonCreate'
-      responses:
-        '200':
-          description: Successfully created polygon
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  description:
-                    type: string
-        '400':
-          description: Invalid input data
-        '500':
-          description: Server error
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mock-endpoint": {
+      "get": {
+        "tags": [
+          "CIRCLE"
+        ],
+        "summary": "Mock Endpoint",
+        "description": "Mock endpoint for demonstration purposes.",
+        "operationId": "mock_endpoint_api_v1_mock_endpoint_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-  /projects/{project_id}/features:
-    get:
-      tags: [PROJECT FEATURES]
-      summary: Get all features for a project
-      description: Retrieves all features for a specific project in GeoJSON format
-      parameters:
-        - name: project_id
-          in: path
-          required: true
-          description: The ID of the project
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: A GeoJSON FeatureCollection of project features
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeoJSONFeatureCollection'
-        '500':
-          description: Server error
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/features": {
+      "put": {
+        "tags": [
+          "PROJECT FEATURES"
+        ],
+        "summary": "Update Project Features",
+        "description": "Update features for a specific project.\n\nOnly updates features that have changed. Returns the number of features added, updated, or deleted.",
+        "operationId": "update_project_features_api_v1_projects__project_id__features_put",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "The ID of the project",
+              "title": "Project Id"
+            },
+            "description": "The ID of the project"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeoJSONFeatureCollection"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "PROJECT FEATURES"
+        ],
+        "summary": "Get Project Features",
+        "description": "Get all features for a specific project in GeoJSON format.\n\nReturns a GeoJSON FeatureCollection containing all features for the project.",
+        "operationId": "get_project_features_api_v1_projects__project_id__features_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "The ID of the project",
+              "title": "Project Id"
+            },
+            "description": "The ID of the project"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-    put:
-      tags: [PROJECT FEATURES]
-      summary: Update project features
-      description: Updates features for a specific project (adds, updates, or deletes)
-      parameters:
-        - name: project_id
-          in: path
-          required: true
-          description: The ID of the project
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GeoJSONFeatureCollection'
-      responses:
-        '200':
-          description: Successfully updated project features
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FeatureResponse'
-        '400':
-          description: Invalid input data
-        '500':
-          description: Server error
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/file_upload": {
+      "post": {
+        "tags": [
+          "FILE UPLOAD ENPOINTS"
+        ],
+        "summary": "Upload Gis File",
+        "operationId": "upload_gis_file_api_v1_file_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_gis_file_api_v1_file_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/file_upload/table_list/{table_name}": {
+      "get": {
+        "tags": [
+          "FILE UPLOAD ENPOINTS"
+        ],
+        "summary": "Get Layer Data",
+        "operationId": "get_layer_data_api_v1_file_upload_table_list__table_name__get",
+        "parameters": [
+          {
+            "name": "table_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Table Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-  /file_upload:
-    post:
-      tags: [FILE UPLOAD ENDPOINTS]
-      summary: Upload a GIS file
-      description: Uploads and processes a GIS file (e.g., Shapefile, GeoJSON)
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      responses:
-        '200':
-          description: File uploaded and processing started
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FileUploadResponse'
-        '500':
-          description: Server error
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/file_upload/all_tables": {
+      "get": {
+        "tags": [
+          "FILE UPLOAD ENPOINTS"
+        ],
+        "summary": "List Gis Layers",
+        "operationId": "list_gis_layers_api_v1_file_upload_all_tables_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-  /file_upload/all_tables:
-    get:
-      tags: [FILE UPLOAD ENDPOINTS]
-      summary: List all GIS layers
-      description: Retrieves a list of all available GIS layers
-      responses:
-        '200':
-          description: A list of table names
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '500':
-          description: Server error
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
 
-  /file_upload/table_list/{table_name}:
-    get:
-      tags: [FILE UPLOAD ENDPOINTS]
-      summary: Get layer data
-      description: Retrieves data for a specific layer in CSV format
-      parameters:
-        - name: table_name
-          in: path
-          required: true
-          description: Name of the table to retrieve
-          schema:
-            type: string
-      responses:
-        '200':
-          description: CSV data for the specified layer
-          content:
-            text/csv:
-              schema:
-                type: string
-        '400':
-          description: Invalid table name
-        '500':
-          description: Server error
-
-  /mock-endpoint:
-    get:
-      tags: [POINT TO POINT ROUTES, CIRCLE]
-      summary: Mock endpoint
-      description: A mock endpoint for demonstration purposes
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "This is a mock endpoint!"
-
-components:
-  schemas:
-    PointCreate:
-      type: object
-      required:
-        - location
-        - description
-      properties:
-        location:
-          $ref: '#/components/schemas/PointGeometry'
-        description:
-          type: string
-
-    PointGeometry:
-      type: object
-      required:
-        - type
-        - coordinates
-      properties:
-        type:
-          type: string
-          enum: [Point]
-          example: "Point"
-        coordinates:
-          type: array
-          minItems: 2
-          maxItems: 2
-          items:
-            type: number
-          example: [100.0, 0.5]
-
-    PolygonCreate:
-      type: object
-      required:
-        - geometry
-        - description
-      properties:
-        geometry:
-          $ref: '#/components/schemas/PolygonGeometry'
-        description:
-          type: string
-
-    PolygonGeometry:
-      type: object
-      required:
-        - type
-        - coordinates
-      properties:
-        type:
-          type: string
-          enum: [Polygon]
-          example: "Polygon"
-        coordinates:
-          type: array
-          items:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-                format: float
-          example: [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]]
-
-    GeoJSONFeatureCollection:
-      type: object
-      required:
-        - type
-        - features
-      properties:
-        type:
-          type: string
-          example: "FeatureCollection"
-        features:
-          type: array
-          items:
-            $ref: '#/components/schemas/GeoJSONFeature'
-
-    GeoJSONFeature:
-      type: object
-      required:
-        - type
-        - geometry
-        - properties
-      properties:
-        type:
-          type: string
-          example: "Feature"
-        geometry:
-          $ref: '#/components/schemas/Geometry'
-        properties:
-          type: object
-          additionalProperties: true
-
-    Geometry:
-      type: object
-      required:
-        - type
-        - coordinates
-      properties:
-        type:
-          type: string
-          enum: [Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon]
-        coordinates:
-          type: array
-
-    FeatureResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: "success"
-        saved:
-          type: integer
-          example: 5
-        deleted:
-          type: integer
-          example: 2
-        unchanged:
-          type: integer
-          example: 3
-        total:
-          type: integer
-          example: 10
-        message:
-          type: string
-          example: "Updated project 1 with 5 features. Deleted 2 old features. 3 features unchanged."
-
-    FileUploadResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          example: "GIS file uploaded and processing started."
-        table_name:
-          type: string
-          example: "layer_12345"
-
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-security:
-  - BearerAuth: []
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_gis_file_api_v1_file_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_gis_file_api_v1_file_upload_post"
+      },
+      "Coordinate": {
+        "properties": {
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "longitude",
+          "latitude"
+        ],
+        "title": "Coordinate"
+      },
+      "FeatureProperties": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": ""
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "title": "FeatureProperties"
+      },
+      "FeatureResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "success"
+          },
+          "saved": {
+            "type": "integer",
+            "title": "Saved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "saved"
+        ],
+        "title": "FeatureResponse"
+      },
+      "FileUploadResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "table_name"
+        ],
+        "title": "FileUploadResponse"
+      },
+      "GeoJSONFeature": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Feature"
+            ],
+            "const": "Feature",
+            "title": "Type"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/Point"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MultiPoint"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LineString"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MultiLineString"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Polygon"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MultiPolygon"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GeometryCollection"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "GeometryCollection": "#/components/schemas/GeometryCollection",
+                    "LineString": "#/components/schemas/LineString",
+                    "MultiLineString": "#/components/schemas/MultiLineString",
+                    "MultiPoint": "#/components/schemas/MultiPoint",
+                    "MultiPolygon": "#/components/schemas/MultiPolygon",
+                    "Point": "#/components/schemas/Point",
+                    "Polygon": "#/components/schemas/Polygon"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/FeatureProperties"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "geometry",
+          "properties"
+        ],
+        "title": "GeoJSONFeature",
+        "description": "Extended GeoJSON Feature with type in properties"
+      },
+      "GeoJSONFeatureCollection": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FeatureCollection"
+            ],
+            "const": "FeatureCollection",
+            "title": "Type"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/GeoJSONFeature"
+            },
+            "type": "array",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "features"
+        ],
+        "title": "GeoJSONFeatureCollection",
+        "description": "Extended GeoJSON FeatureCollection"
+      },
+      "GeometryCollection": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "GeometryCollection"
+            ],
+            "const": "GeometryCollection",
+            "title": "Type"
+          },
+          "geometries": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Point"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiPoint"
+                },
+                {
+                  "$ref": "#/components/schemas/LineString"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiLineString"
+                },
+                {
+                  "$ref": "#/components/schemas/Polygon"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiPolygon"
+                },
+                {
+                  "$ref": "#/components/schemas/GeometryCollection"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "GeometryCollection": "#/components/schemas/GeometryCollection",
+                  "LineString": "#/components/schemas/LineString",
+                  "MultiLineString": "#/components/schemas/MultiLineString",
+                  "MultiPoint": "#/components/schemas/MultiPoint",
+                  "MultiPolygon": "#/components/schemas/MultiPolygon",
+                  "Point": "#/components/schemas/Point",
+                  "Polygon": "#/components/schemas/Polygon"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Geometries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "geometries"
+        ],
+        "title": "GeometryCollection",
+        "description": "GeometryCollection Model"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LineString": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "LineString"
+            ],
+            "const": "LineString",
+            "title": "Type"
+          },
+          "coordinates": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Position2D"
+                },
+                {
+                  "$ref": "#/components/schemas/Position3D"
+                }
+              ]
+            },
+            "type": "array",
+            "minItems": 2,
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "LineString",
+        "description": "LineString Model"
+      },
+      "Location": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Point"
+            ],
+            "const": "Point",
+            "title": "Type"
+          },
+          "coordinates": {
+            "$ref": "#/components/schemas/Coordinate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "Location"
+      },
+      "MultiLineString": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MultiLineString"
+            ],
+            "const": "MultiLineString",
+            "title": "Type"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Position2D"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Position3D"
+                  }
+                ]
+              },
+              "type": "array",
+              "minItems": 2
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "MultiLineString",
+        "description": "MultiLineString Model"
+      },
+      "MultiPoint": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MultiPoint"
+            ],
+            "const": "MultiPoint",
+            "title": "Type"
+          },
+          "coordinates": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Position2D"
+                },
+                {
+                  "$ref": "#/components/schemas/Position3D"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "MultiPoint",
+        "description": "MultiPoint Model"
+      },
+      "MultiPolygon": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MultiPolygon"
+            ],
+            "const": "MultiPolygon",
+            "title": "Type"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Position2D"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Position3D"
+                    }
+                  ]
+                },
+                "type": "array",
+                "minItems": 4
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "MultiPolygon",
+        "description": "MultiPolygon Model"
+      },
+      "Point": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Point"
+            ],
+            "const": "Point",
+            "title": "Type"
+          },
+          "coordinates": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Position2D"
+              },
+              {
+                "$ref": "#/components/schemas/Position3D"
+              }
+            ],
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "Point",
+        "description": "Point Model"
+      },
+      "PointCreate": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "description"
+        ],
+        "title": "PointCreate"
+      },
+      "Polygon": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 6,
+                "minItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Polygon"
+            ],
+            "const": "Polygon",
+            "title": "Type"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Position2D"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Position3D"
+                  }
+                ]
+              },
+              "type": "array",
+              "minItems": 4
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "Polygon",
+        "description": "Polygon Model"
+      },
+      "PolygonCoordinates": {
+        "properties": {
+          "coordinates": {
+            "items": {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "PolygonCoordinates"
+      },
+      "PolygonCreate": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/PolygonCoordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description",
+          "geometry"
+        ],
+        "title": "PolygonCreate"
+      },
+      "Position2D": {
+        "prefixItems": [
+          {
+            "type": "number",
+            "title": "Longitude"
+          },
+          {
+            "type": "number",
+            "title": "Latitude"
+          }
+        ],
+        "type": "array",
+        "maxItems": 2,
+        "minItems": 2
+      },
+      "Position3D": {
+        "prefixItems": [
+          {
+            "type": "number",
+            "title": "Longitude"
+          },
+          {
+            "type": "number",
+            "title": "Latitude"
+          },
+          {
+            "type": "number",
+            "title": "Altitude"
+          }
+        ],
+        "type": "array",
+        "maxItems": 3,
+        "minItems": 3
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
