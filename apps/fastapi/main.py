@@ -51,7 +51,7 @@ async def startup_event():
         # that might restart the container on startup failure
 
 # Health check endpoint with database status
-@app.get("/ping")
+@app.get("/api/v1/ping")
 async def ping():
     db_status = "connected" if check_db_connection() else "disconnected"
     return {
