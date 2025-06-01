@@ -8,7 +8,7 @@ endpoints:
   # +required Unique name for the endpoint. (This name will be used when generating the managed API)
   - name: fastapi
     service:
-      basePath: /
+      basePath: /api/v1
       port: 8000
     type: REST
     # +optional Network level visibility of the endpoint. Defaults to Public
