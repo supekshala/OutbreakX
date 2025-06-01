@@ -5,13 +5,23 @@ build:
   runCommand: uvicorn main:app --host=0.0.0.0 --port=8000
 
 endpoints:
-  # +required Unique name for the endpoint. (This name will be used when generating the managed API)
   - name: fastapi
+    type: REST
+    networkVisibility: Public
+    schemaFilePath: openapi.yaml
     service:
       basePath: /
       port: 8000
-    type: REST
-    # +optional Network level visibility of the endpoint. Defaults to Public
-    # Accepted values: Project|Organization|Public.
-    networkVisibility: Public
-    schemaFilePath: openapi.yaml
+      healthChecks:
+        readiness:
+          path: /api/v1/ping
+          protocol: HTTP
+          intervalSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        liveness:
+          path: /api/v1/ping
+          protocol: HTTP
+          intervalSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
