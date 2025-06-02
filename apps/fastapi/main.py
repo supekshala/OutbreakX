@@ -3,6 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.router import router
 from config.database import check_db_connection, init_db
+from auth.dependencies.auth import get_current_user
+from fastapi import Depends
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -72,4 +75,18 @@ async def root():
         "database": db_status,
         "docs": "/docs",
         "openapi": "/openapi.json"
+        
     }
+
+@app.get("/me")
+async def read_me(user=Depends(get_current_user)):
+    return {
+        "sub": user.get("sub"),
+        "email": user.get("email"),
+        "name": user.get("name"),
+        "claims": user
+    }
+
+
+
+    

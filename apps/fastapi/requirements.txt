@@ -1,10 +1,32 @@
-uvicorn[standard]
-fastapi
-geoalchemy2
-shapely
-python-dotenv
-psycopg2-binary
-sqlalchemy
-geojson-pydantic>=1.0.0,<3.0.0
-python-multipart
+# Core
+fastapi>=0.100.0,<1.0.0
+uvicorn[standard]>=0.20.0,<1.0.0
+python-dotenv>=1.0.0,<2.0.0
+python-multipart>=0.0.5,<1.0.0
 
+# Database
+sqlalchemy>=2.0.0,<3.0.0
+psycopg2-binary>=2.9.0,<3.0.0
+alembic>=1.10.0,<2.0.0
+
+# Geospatial
+geopandas>=0.13.0,<1.0.0
+shapely>=2.0.0,<3.0.0
+geoalchemy2>=0.13.0,<0.15.0
+geojson-pydantic>=1.0.0,<3.0.0
+fiona>=1.9.0,<2.0.0
+pyproj>=3.0.0,<4.0.0
+
+# Authentication
+python-jose[cryptography]>=3.3.0,<4.0.0
+passlib[bcrypt]>=1.7.0,<2.0.0
+
+# Utilities
+pydantic[email]>=2.0.0,<3.0.0
+python-dateutil>=2.8.0,<3.0.0
+pytz>=2023.0,<2024.0
+
+# Development
+pytest>=7.0.0,<8.0.0
+pytest-asyncio>=0.20.0,<1.0.0
+httpx>=0.24.0,<1.0.0
