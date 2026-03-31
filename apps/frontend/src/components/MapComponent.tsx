@@ -1,298 +1,327 @@
-import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import axios from 'axios';
-import 'leaflet/dist/leaflet.css';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import {
+  Circle,
+  CircleMarker,
+  MapContainer,
+  Popup,
+  TileLayer,
+  useMapEvents,
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
-interface MarkerData {
-  location: {
-    type: string;
-    coordinates: [number, number];
-  };
-  description: string;
-}
+type DiseaseEvent = {
+  id: number;
+  timestamp: string;
+  lat: number;
+  lng: number;
+  symptoms: string[];
+};
 
-const icon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-// Interface defining the structure of marker data
-// Each marker has a location (with type and coordinates) and a description
-interface MarkerData {
-  location: {
-    type: string;
-    coordinates: [number, number];
-  };
-  description: string;
-}
-
-// Main map component that handles markers and interactions
-const MapComponent: React.FC = () => {
-  // State for storing markers and right-click position information
-  const [markers, setMarkers] = useState<MarkerData[]>([]);
-  const [rightClickPos, setRightClickPos] = useState<{
+type Cluster = {
+  cluster_id: number;
+  size: number;
+  centroid: {
     lat: number;
     lng: number;
-    clientX: number;
-    clientY: number;
-  } | null>(null);
-  const [descriptionDialog, setDescriptionDialog] = useState<{
-    isOpen: boolean;
-    position: { lat: number; lng: number; } | null;
-    description: string;
-  }>({
-    isOpen: false,
-    position: null,
-    description: ''
+  };
+  radius_km: number;
+  event_ids: number[];
+  symptom_counts: Record<string, number>;
+  start_time: string;
+  end_time: string;
+  is_outbreak: boolean;
+};
+
+type Summary = {
+  hours: number;
+  total_events: number;
+  total_clusters: number;
+  outbreak_clusters: number;
+  largest_cluster: number;
+};
+
+type Props = {
+  hours: number;
+  onSummaryChange: (summary: Summary | null) => void;
+};
+
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ?? "http://localhost:8000/api/v1/surveillance";
+
+const SYMPTOM_OPTIONS = ["fever", "cough", "fatigue", "headache", "nausea"];
+const MELBOURNE_CENTER: [number, number] = [-37.8136, 144.9631];
+
+const formatTimestamp = (value: string) =>
+  new Date(value).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
   });
 
-  // Component to handle map events (click and right-click)
-  const MapEventHandler = () => {
-    useMapEvents({
-      // Left click - Add marker with user-provided description
-      click: (e) => {
-        const { lat, lng } = e.latlng;
-        setDescriptionDialog({
-          isOpen: true,
-          position: { lat, lng },
-          description: ''
-        });
-      },
-      // Right click - Show coordinates in a popup overlay
-      contextmenu: (e) => {
-        const { lat, lng } = e.latlng;
-        setRightClickPos({ 
-          lat, 
-          lng, 
-          clientX: e.originalEvent.clientX,
-          clientY: e.originalEvent.clientY
-        });
-        e.originalEvent.preventDefault();
+const MapEventCapture: React.FC<{
+  onSelectLocation: (coords: { lat: number; lng: number }) => void;
+}> = ({ onSelectLocation }) => {
+  useMapEvents({
+    click(event) {
+      onSelectLocation({
+        lat: event.latlng.lat,
+        lng: event.latlng.lng,
+      });
+    },
+  });
+
+  return null;
+};
+
+const MapComponent: React.FC<Props> = ({ hours, onSummaryChange }) => {
+  const [events, setEvents] = useState<DiseaseEvent[]>([]);
+  const [clusters, setClusters] = useState<Cluster[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(["fever", "cough"]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const outbreakClusters = useMemo(
+    () => clusters.filter((cluster) => cluster.is_outbreak),
+    [clusters],
+  );
+
+  const fetchSurveillanceData = useCallback(async () => {
+    setLoading(true);
+
+    try {
+      const [eventsResult, clustersResult, summaryResult] = await Promise.allSettled([
+        axios.get<DiseaseEvent[]>(`${API_BASE_URL}/events`, { params: { hours } }),
+        axios.get<Cluster[]>(`${API_BASE_URL}/clusters`, { params: { hours } }),
+        axios.get<Summary>(`${API_BASE_URL}/summary`, { params: { hours } }),
+      ]);
+
+      let hasAnySuccess = false;
+
+      if (eventsResult.status === "fulfilled") {
+        setEvents(eventsResult.value.data);
+        hasAnySuccess = true;
       }
-    });
-    return null;
+
+      if (clustersResult.status === "fulfilled") {
+        setClusters(clustersResult.value.data);
+        hasAnySuccess = true;
+      }
+
+      if (summaryResult.status === "fulfilled") {
+        onSummaryChange(summaryResult.value.data);
+        hasAnySuccess = true;
+      } else {
+        onSummaryChange(null);
+      }
+
+      if (hasAnySuccess) {
+        setError(null);
+      } else {
+        setError("Unable to load surveillance data. Confirm the FastAPI service is running.");
+      }
+    } catch (requestError) {
+      setError("Unable to load surveillance data. Confirm the FastAPI service is running.");
+    } finally {
+      setLoading(false);
+    }
+  }, [hours, onSummaryChange]);
+
+  useEffect(() => {
+    void fetchSurveillanceData();
+  }, [fetchSurveillanceData]);
+
+  const toggleSymptom = (symptom: string) => {
+    setSelectedSymptoms((currentSymptoms) =>
+      currentSymptoms.includes(symptom)
+        ? currentSymptoms.filter((item) => item !== symptom)
+        : [...currentSymptoms, symptom],
+    );
   };
 
-  // Add function to handle marker creation
-  const handleCreateMarker = () => {
-    if (descriptionDialog.position && descriptionDialog.description) {
-      const newMarker = {
-        location: {
-          type: 'Point',
-          coordinates: [descriptionDialog.position.lng, descriptionDialog.position.lat]
-        },
-        description: descriptionDialog.description
-      };
-      console.log(newMarker);
-      
-      axios.post('http://localhost:8000/point', newMarker)
-        .then(response => setMarkers([...markers, response.data]))
-        .catch(error => console.error('Error creating marker:', error));
-      
-      setDescriptionDialog({ isOpen: false, position: null, description: '' });
+  const handleCreateEvent = async () => {
+    if (!selectedLocation || selectedSymptoms.length === 0) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await axios.post(`${API_BASE_URL}/events`, {
+        timestamp: new Date().toISOString(),
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+        symptoms: selectedSymptoms,
+      });
+      setSelectedLocation(null);
+      await fetchSurveillanceData();
+    } catch (requestError) {
+      setError("Event submission failed. Check the API and database configuration.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div>
-      {/* Main map container centered on London coordinates */}
-      <MapContainer center={[51.505, -0.09]} zoom={13} style={{ height: "100vh", width: "100%" }}>
-        {/* OpenStreetMap tile layer for map rendering */}
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {/* Render all markers from state */}
-        {markers.map((marker, index) => (
-          <Marker 
-            key={index} 
-            position={[marker.location.coordinates[1], marker.location.coordinates[0]]} 
-            icon={icon} 
-          />
-        ))}
-        {/* Component that handles map interactions */}
-        <MapEventHandler />
-      </MapContainer>
-      
-      {/* Conditional rendering of the right-click coordinate popup */}
-      {rightClickPos && (
-        <div style={{ 
-          position: 'fixed',
-          left: Math.min(rightClickPos.clientX + 10, window.innerWidth - 250),
-          top: Math.min(rightClickPos.clientY + 10, window.innerHeight - 150),
-          background: 'white', 
-          padding: '15px',
-          borderRadius: '8px',
-          boxShadow: '0 3px 14px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          width: '220px',
-          border: '1px solid #e0e0e0',
-          fontFamily: 'Arial, sans-serif'
-        }}>
-          <button 
-            onClick={() => setRightClickPos(null)}
-            style={{ 
-              position: 'absolute',
-              right: '8px',
-              top: '8px',
-              border: 'none',
-              background: '#f5f5f5',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              color: '#666',
-              fontSize: '14px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            ✕
-          </button>
-
-          <div style={{ marginBottom: '12px', paddingRight: '20px' }}>
-            <h3 style={{ 
-              margin: '0 0 10px 0',
-              color: '#333',
-              fontSize: '16px',
-              fontWeight: 600 
-            }}>
-              Location Details
-            </h3>
+    <section className="surveillance-grid">
+      <div className="map-shell">
+        <div className="map-toolbar">
+          <div>
+            <p className="eyebrow">Operational Map</p>
+            <h2>Recent symptom activity and outbreak candidates</h2>
           </div>
-
-          <div style={{
-            background: '#f8f9fa',
-            padding: '10px',
-            borderRadius: '6px',
-            marginBottom: '12px'
-          }}>
-            <div style={{ marginBottom: '8px' }}>
-              <label style={{ 
-                color: '#666', 
-                fontSize: '12px', 
-                display: 'block',
-                marginBottom: '2px'
-              }}>
-                Latitude
-              </label>
-              <span style={{ 
-                color: '#333',
-                fontSize: '14px',
-                fontFamily: 'monospace'
-              }}>
-                {rightClickPos.lat.toFixed(6)}
-              </span>
-            </div>
-            
-            <div>
-              <label style={{ 
-                color: '#666', 
-                fontSize: '12px', 
-                display: 'block',
-                marginBottom: '2px'
-              }}>
-                Longitude
-              </label>
-              <span style={{ 
-                color: '#333',
-                fontSize: '14px',
-                fontFamily: 'monospace'
-              }}>
-                {rightClickPos.lng.toFixed(6)}
-              </span>
-            </div>
-          </div>
-
-          <button 
-            onClick={() => navigator.clipboard.writeText(`${rightClickPos.lat},${rightClickPos.lng}`)}
-            style={{ 
-              width: '100%',
-              padding: '8px 12px',
-              background: '#4a90e2',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'background 0.2s ease'
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>📋</span> Copy Coordinates
+          <button className="ghost-button" onClick={() => void fetchSurveillanceData()}>
+            Refresh
           </button>
         </div>
-      )}
 
-      {/* Add Description Dialog */}
-      {descriptionDialog.isOpen && (
-        <div style={{
-          position: 'fixed',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 3px 14px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          width: '300px',
-          border: '1px solid #e0e0e0'
-        }}>
-          <h3 style={{ margin: '0 0 15px 0' }}>Add Marker Description</h3>
-          <textarea
-            value={descriptionDialog.description}
-            onChange={(e) => setDescriptionDialog({
-              ...descriptionDialog,
-              description: e.target.value
-            })}
-            style={{
-              width: '100%',
-              padding: '8px',
-              marginBottom: '15px',
-              borderRadius: '4px',
-              border: '1px solid #ddd',
-              minHeight: '100px'
-            }}
-            placeholder="Enter description for this marker..."
-          />
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-            <button
-              onClick={() => setDescriptionDialog({ isOpen: false, position: null, description: '' })}
-              style={{
-                padding: '8px 15px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                background: 'white',
-                cursor: 'pointer'
+        <MapContainer
+          center={MELBOURNE_CENTER}
+          zoom={11}
+          scrollWheelZoom
+          style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapEventCapture onSelectLocation={setSelectedLocation} />
+
+          {events.map((event) => (
+            <CircleMarker
+              key={event.id}
+              center={[event.lat, event.lng]}
+              radius={5}
+              pathOptions={{
+                color: "#0f172a",
+                weight: 1,
+                fillColor: "#f97316",
+                fillOpacity: 0.9,
               }}
             >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreateMarker}
-              style={{
-                padding: '8px 15px',
-                background: '#4a90e2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
+              <Popup>
+                <strong>Event #{event.id}</strong>
+                <br />
+                {formatTimestamp(event.timestamp)}
+                <br />
+                Symptoms: {event.symptoms.join(", ") || "None"}
+              </Popup>
+            </CircleMarker>
+          ))}
+
+          {clusters.map((cluster) => (
+            <Circle
+              key={cluster.cluster_id}
+              center={[cluster.centroid.lat, cluster.centroid.lng]}
+              radius={Math.max(cluster.radius_km * 1000, 250)}
+              pathOptions={{
+                color: cluster.is_outbreak ? "#b91c1c" : "#0369a1",
+                weight: cluster.is_outbreak ? 3 : 2,
+                fillColor: cluster.is_outbreak ? "#ef4444" : "#38bdf8",
+                fillOpacity: cluster.is_outbreak ? 0.2 : 0.12,
               }}
             >
-              Add Marker
-            </button>
+              <Popup>
+                <strong>
+                  {cluster.is_outbreak ? "Potential outbreak" : "Cluster"} #{cluster.cluster_id}
+                </strong>
+                <br />
+                Size: {cluster.size}
+                <br />
+                Radius: {cluster.radius_km} km
+                <br />
+                Window: {formatTimestamp(cluster.start_time)} to {formatTimestamp(cluster.end_time)}
+              </Popup>
+            </Circle>
+          ))}
+        </MapContainer>
+
+        <div className="map-legend">
+          <span>
+            <i className="legend-swatch event-swatch" /> Symptom events
+          </span>
+          <span>
+            <i className="legend-swatch cluster-swatch" /> Dense clusters
+          </span>
+          <span>
+            <i className="legend-swatch outbreak-swatch" /> Flagged outbreaks
+          </span>
+        </div>
+      </div>
+
+      <aside className="control-panel">
+        <div className="panel-card">
+          <p className="eyebrow">MVP Input</p>
+          <h3>Create a symptom event</h3>
+          <p className="panel-copy">
+            Click the map to choose a location, then submit a symptom report into the active time
+            window.
+          </p>
+
+          <div className="selected-location">
+            <span>Latitude</span>
+            <strong>{selectedLocation ? selectedLocation.lat.toFixed(5) : "Select on map"}</strong>
+            <span>Longitude</span>
+            <strong>{selectedLocation ? selectedLocation.lng.toFixed(5) : "Select on map"}</strong>
+          </div>
+
+          <div className="symptom-grid">
+            {SYMPTOM_OPTIONS.map((symptom) => (
+              <button
+                key={symptom}
+                className={
+                  selectedSymptoms.includes(symptom)
+                    ? "symptom-pill symptom-pill-active"
+                    : "symptom-pill"
+                }
+                onClick={() => toggleSymptom(symptom)}
+                type="button"
+              >
+                {symptom}
+              </button>
+            ))}
+          </div>
+
+          <button
+            className="primary-button"
+            disabled={!selectedLocation || selectedSymptoms.length === 0 || submitting}
+            onClick={() => void handleCreateEvent()}
+          >
+            {submitting ? "Submitting..." : "Submit event"}
+          </button>
+        </div>
+
+        <div className="panel-card">
+          <p className="eyebrow">Detection Output</p>
+          <h3>Flagged clusters</h3>
+          {loading && <p className="panel-copy">Loading recent events and clusters...</p>}
+          {error && <p className="error-text">{error}</p>}
+          {!loading && !error && outbreakClusters.length === 0 && (
+            <p className="panel-copy">
+              No outbreak-sized clusters detected in the current {hours}-hour window.
+            </p>
+          )}
+          <div className="cluster-list">
+            {outbreakClusters.map((cluster) => (
+              <article key={cluster.cluster_id} className="cluster-item">
+                <div className="cluster-heading">
+                  <strong>Cluster #{cluster.cluster_id}</strong>
+                  <span>{cluster.size} events</span>
+                </div>
+                <p>
+                  Centroid {cluster.centroid.lat.toFixed(3)}, {cluster.centroid.lng.toFixed(3)}
+                </p>
+                <p>Radius {cluster.radius_km} km</p>
+                <p>
+                  Top symptoms:{" "}
+                  {Object.keys(cluster.symptom_counts).slice(0, 3).join(", ") || "No symptoms"}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
-      )}
-    </div>
+      </aside>
+    </section>
   );
 };
 
